@@ -1,45 +1,59 @@
 __author__ = 'Sefverl'
 
-import socketserver
+import SocketServer
+import sys
+import getopt
+
 from crypto import Vigenere
 
 
 class OmniCollectServer(object):
-	def __init__(self, address_to_listen_on, cipher):
-		self.listening_socket = socketserver.UDPServer(address_to_listen_on, UDPHandler)
+  def __init__ ( self , address_to_listen_on , cipher ) :
+    self.listening_socket = SocketServer.UDPServer( address_to_listen_on , UDPHandler )
 
-	def listen(self):
-		pass
-
-	def connectToDB(self, db_address):
-		''' Connect to a given database and return a handle, requires more thought
-		'''
-		pass
+  def connectToDB ( self , db_address ) :
+    ''' Connect to a given database and return a handle, requires more thought
+    '''
+    pass
 
 
-class UDPHandler(socketserver.BaseRequestHandler):
-	def handle(self):
-		global cipher
-		data = self.request[0].strip()
-		socket = self.request[1]
-		print("{} wrote:".format(self.client_address[0]))
+class UDPHandler( SocketServer.BaseRequestHandler ) :
+  def handle ( self ) :
+    global cipher
+    data = self.request[ 0 ].strip( )
+    socket = self.request[ 1 ]
+    print("{} wrote:".format( self.client_address[ 0 ] ))
 
-		deciphered = cipher.decipher(data.decode())
-		print(deciphered)
+    deciphered = cipher.decipher( data.decode( ) )
+    print(deciphered)
 
-		socket.sendto(cipher.cipher("ACCEPTED").encode(), self.client_address)
-
-	def loadCipher(self, cipher):
-		self.cipher = cipher
+    socket.sendto( cipher.cipher( "ACCEPTED" ).encode( ) , self.client_address )
 
 
-def main():
-	HOST, PORT = "localhost", 9999
-	global cipher
-	cipher = Vigenere.Vigenere("BEESHMAN")
-	server = OmniCollectServer((HOST, PORT), cipher)
-	server.listening_socket.serve_forever()
+  def loadCipher ( self , cipher ) :
+    self.cipher = cipher
+
+
+def main ( argv ) :
+  try :
+    opts , args = getopt.getopt( argv , "hp:" , [ "port=" ] )
+  except getopt.GetoptError :
+    print 'OmniCollect_Server -p PORT e.g. 9999'
+    sys.exit( 2 )
+
+  HOST , PORT = "localhost" , 0
+
+  for opt , arg in opts :
+    if opt == '-h' :
+      print 'OmniCollect_Server -p PORT e.g. 9999'
+    elif opt in ('-p') :
+      PORT = int( arg )
+
+  global cipher
+  cipher = Vigenere.Vigenere( "BEESHMAN" )
+  server = OmniCollectServer( (HOST , PORT) , cipher )
+  server.listening_socket.serve_forever( )
 
 
 if __name__ == "__main__":
-	main()
+  main( sys.argv[ 1 : ] )
