@@ -41,7 +41,7 @@ def main ( argv ) :
     print 'OmniCollect_Server -p PORT e.g. 9999'
     sys.exit( 2 )
 
-  HOST , PORT = "localhost" , 0
+  HOST , PORT = "localhost" , -1
 
   for opt , arg in opts :
     if opt == '-h' :
@@ -49,9 +49,16 @@ def main ( argv ) :
     elif opt in ('-p') :
       PORT = int( arg )
 
+  if PORT == -1 :
+    sys.exit( 2 )
+
   global cipher
   cipher = Vigenere( "BEESHMAN" )
   server = OmniCollectServer( (HOST , PORT) , cipher )
+
+  if server.listening_socket :
+    print("Server is listening on port " , PORT , " for UDP packets...")
+
   server.listening_socket.serve_forever( )
 
 
