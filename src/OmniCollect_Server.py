@@ -4,7 +4,7 @@ import SocketServer
 import sys
 import getopt
 
-from crypto import Vigenere
+from crypto.Vigenere import Vigenere
 
 
 class OmniCollectServer(object):
@@ -50,7 +50,7 @@ def main ( argv ) :
       PORT = int( arg )
 
   global cipher
-  cipher = Vigenere.Vigenere( "BEESHMAN" )
+  cipher = Vigenere( "BEESHMAN" )
   server = OmniCollectServer( (HOST , PORT) , cipher )
   server.listening_socket.serve_forever( )
 

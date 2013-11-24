@@ -4,7 +4,7 @@ import socket
 import sys
 import getopt
 
-from crypto import Vigenere
+from crypto.Vigenere import Vigenere
 
 
 class OmniCollectClient(object):
@@ -37,7 +37,7 @@ def main ( argv ) :
     elif opt in ('-h') :
       HOST = arg
 
-  cipher = Vigenere.Vigenere( "BEESHMAN" )
+  cipher = Vigenere( "BEESHMAN" )
   client = OmniCollectClient( cipher )
   client.send_message( "HelloWorld" , (HOST , PORT) )
 
