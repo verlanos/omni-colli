@@ -41,7 +41,7 @@ def main ( argv ) :
     print 'OmniCollect_Server -p PORT e.g. 9999'
     sys.exit( 2 )
 
-  HOST , PORT = "localhost" , -1
+  HOST , PORT = "" , -1
 
   for opt , arg in opts :
     if opt == '-h' :
