@@ -7,62 +7,57 @@ import datetime
 
 from uuid import getnode as get_mac
 
-from config.ConfigDAO import ConfigDAO
-from crypto.Vigenere import Vigenere
 
 class OmniCollectClient(object):
-  def __init__ ( self , cipher ) :
-    self.connection = socket.socket( socket.AF_INET , socket.SOCK_DGRAM )
-    self.cipher = cipher
+    def __init__(self):
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-  def connect_to ( self , address_to_connect_to ) :
-    self.connection.connect( address_to_connect_to )
+    def connect_to(self, address_to_connect_to):
+        self.connection.connect(address_to_connect_to)
 
-  def send_message ( self , message , address_to_send_to ) :
-    self.connection.sendto( self.cipher.cipher( message ).encode( ) , address_to_send_to )
-    received_ciphered = self.connection.recv( 1024 ).decode( )
-    received = self.cipher.decipher( received_ciphered )
-    print("Sent: {}".format( message ))
-    print("Received: {}".format( received ))
+    def send_message(self, message, address_to_send_to):
+        self.connection.sendto(message.encode(), address_to_send_to)
+        print("Sent: {}".format(message))
+
+    def receive_message(self, buffer_size):
+        return self.connection.recv(buffer_size).decode()
 
 
-def main ( argv ) :
-  try :
-    opts , args = getopt.getopt( argv , "?h:p:" , [ "host=" , "port=" ] )
-  except getopt.GetoptError :
-    print 'OmniCollect_Client -h HOSTNAME -p PORT'
-    sys.exit( 2 )
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv, "?h:p:m:", ["host=", "port=", "message="])
+    except getopt.GetoptError:
+        print 'OmniCollect_Client -h HOSTNAME -p PORT -m VALUE:UNIT e.g. 40:C'
+        sys.exit(2)
 
-  HOST , PORT = "" , 0
+    host, port = "", 0
+    data_raw, data_meta = None, None
 
-  for opt , arg in opts :
-    if opt == '-?' :
-      print 'OmniCollect_Server -h HOSTNAME -p PORT'
-    elif opt in ('-p') :
-      PORT = int( arg )
-    elif opt in ('-h') :
-      HOST = arg
+    for opt, arg in opts:
+        if opt == '-?':
+            print 'OmniCollect_Client -h HOSTNAME -p PORT -m VALUE:UNIT e.g. 40:C'
+        elif opt in '-p':
+            port = int(arg)
+        elif opt in '-h':
+            host = arg
+        elif opt in '-m':
+            data_pair = arg.split(':')
+            data_raw = data_pair[0].strip()
+            data_meta = data_pair[1].strip()
 
-  cfg_man = ConfigDAO( )
-  cipher_cred = cfg_man.load_config( 'cipher' )
-  cipher_key = cipher_cred.get( 'key' )
+    client = OmniCollectClient()
+    print(host, "@", port)
+    client.connect_to((host, port))
 
-  cipher = Vigenere( cipher_key )
+    if data_raw and data_meta:
+        device_id = get_mac()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-  client = OmniCollectClient( cipher )
-  print(HOST , "@" , PORT)
-  client.connect_to( (HOST , PORT) )
+        message = '{"data":"{0}","meta":"{1}","id":"{2}","timestamp":"{3}"}'.format(str(data_raw), str(data_meta),
+                                                                                    str(device_id), str(timestamp))
 
-  data = 40
-  meta_data = "C"
-  device_id = get_mac( )
-  timestamp = datetime.datetime.now( ).strftime( "%Y%m%d%H%M%S" )
-
-  message = '{"data":"{0}","meta":"{1}","id":"{2}","timestamp":"{3}"}'.format( str( data ) , str( meta_data ) ,
-                                                                               str( device_id ) , str( timestamp ) )
-
-  client.send_message( message , (HOST , PORT) )
+        client.send_message(message, (host, port))
 
 
 if __name__ == "__main__":
-  main( sys.argv[ 1 : ] )
+    main(sys.argv[1:])
